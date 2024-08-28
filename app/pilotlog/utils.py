@@ -77,3 +77,39 @@ def import_data(file_path):
             except Exception as e:
                 print("error : ", e)
 
+
+def export_data_to_csv(filename='export-logbook_template.csv'):
+    # Create an HTTP response with CSV content type
+    response = HttpResponse(content_type='text/csv')
+    response['Content-Disposition'] = f'attachment; filename="{filename}"'
+    
+    # Initialize the CSV writer
+    writer = csv.writer(response)
+    
+    # Get all installed models
+    models = apps.get_models()
+    
+    # Create a CSV file for each model that is not abstract and is a subclass of BaseModel
+    for model in models:
+        if not model._meta.abstract and issubclass(model, BaseModel):
+            model_name = model._meta.model_name
+            Model_fields = [field.name.capitalize() for field in model._meta.fields]
+            Model_name= model_name.capitalize()
+            
+            # Write model name as a header
+            writer.writerow([f"{Model_name} Table"])
+            writer.writerow(Model_fields)  # Write the header for the fields
+            
+            # Write data for each instance of the model
+            model_fields = [field.name for field in model._meta.fields]
+            instances = model.objects.all()
+            for instance in instances:
+                # Write each field value to the CSV row
+                row = [getattr(instance, field, '') for field in model_fields]
+                writer.writerow(row)
+            
+            # Add a blank line
+            writer.writerow([])
+            writer.writerow([])
+            
+    return response

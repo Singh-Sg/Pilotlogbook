@@ -1,4 +1,4 @@
-from .utils import import_data
+from .utils import import_data, export_data_to_csv
 from rest_framework import viewsets
 from rest_framework.response import Response
 from rest_framework import status
@@ -23,6 +23,16 @@ class DataViewSet(viewsets.ModelViewSet):
             if default_storage.exists(save_path):
                 default_storage.delete(save_path)
             return Response({"message": "Data imported successfully"}, status=status.HTTP_200_OK)
+        except Exception as e:
+            # If an error occurs, return a 500 response with the error message
+            return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+    @action(detail=False, methods=['get'], url_path='export')
+    def export_data(self, request, *args, **kwargs):
+        try:
+            # Attempt to export data to a CSV file
+            response = export_data_to_csv()
+            return response
         except Exception as e:
             # If an error occurs, return a 500 response with the error message
             return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
